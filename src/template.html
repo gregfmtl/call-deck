@@ -52,14 +52,10 @@
   .mynote { display:block; width:100%; background:rgba(255,255,255,.05); border:1px solid var(--line); border-radius:9px; color:var(--text); font-size:16px; line-height:1.35; font-family:inherit; padding:7px 9px; margin-top:7px; height:42px; resize:none; }
   .mynote:focus { outline:none; border-color:var(--accent); }
   .mynote::placeholder { color:var(--dim); opacity:.7; }
-  .done { display:block; text-align:center; margin-top:auto; padding:8px; border:1px solid var(--line); border-radius:10px; font-size:12px; font-weight:700; color:var(--dim); cursor:pointer; user-select:none; -webkit-user-select:none; }
+  .navrow { display:flex; gap:8px; margin-top:auto; padding-top:8px; }
+  .done { flex:1; text-align:center; padding:11px 4px; border:1px solid var(--line); border-radius:12px; font-size:12px; font-weight:700; color:var(--dim); cursor:pointer; user-select:none; -webkit-user-select:none; background:none; font-family:inherit; }
   .done.on { background:rgba(46,204,113,.15); color:var(--green); border-color:rgba(46,204,113,.4); }
-  .navrow { display:flex; gap:8px; margin-top:8px; }
-  .nav { flex:1; text-align:center; text-decoration:none; font-size:19px; font-weight:800; border-radius:12px; padding:8px 0; border:1px solid var(--line); color:var(--text); cursor:pointer; background:none; font-family:inherit; }
-  .nav.next { flex:2.4; background:var(--accent); border-color:var(--accent); color:#fff; }
-  .nav.skip { font-size:13px; line-height:1.2; padding-top:5px; color:var(--green); border-color:rgba(46,204,113,.35); }
-  .nav.skip small { display:block; font-size:8px; font-weight:800; letter-spacing:.05em; opacity:.75; }
-  .nav.off { opacity:.3; pointer-events:none; }
+  .nav { flex:1.6; text-align:center; text-decoration:none; font-size:12px; font-weight:800; letter-spacing:.03em; border-radius:12px; padding:11px 0; border:1px solid rgba(76,141,255,.5); color:#8ab4ff; cursor:pointer; background:rgba(76,141,255,.12); font-family:inherit; }
   .sumwrap { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; flex:1; gap:10px; }
   .sumbig { font-size:44px; font-weight:800; color:var(--green); }
   .sumtxt { font-size:14px; color:var(--dim); line-height:1.5; }
@@ -169,7 +165,7 @@ function initDeck(DATA){
       html += '<div class="sib" id="sib' + num + '"></div>';
       if (pi >= 0) {
         var p = l.numbers[pi];
-        html += '<a class="dial" href="' + esc(quoHref(p.tel)) + '">&#128222; ' + esc(p.display) + '<small>' + esc((p.type || 'PHONE').toUpperCase()) + '</small></a>';
+        html += '<a class="dial" data-i="' + i + '" href="' + esc(quoHref(p.tel)) + '">&#128222; ' + esc(p.display) + '<small>' + esc((p.type || 'PHONE').toUpperCase()) + '</small></a>';
       } else {
         html += '<div class="dial nodial">No callable number' + ((l.numbers || []).length ? ' — do-not-call only' : ' listed') + '</div>';
       }
@@ -188,16 +184,14 @@ function initDeck(DATA){
       if (l.email) html += '<div class="ind"><b>Email:</b> <span class="email-copy" data-e="' + esc(l.email) + '">' + esc(l.email) + '</span></div>';
       if (l.about) html += '<div class="about">' + esc(l.about) + '</div>';
       html += '<textarea class="mynote" data-i="' + i + '" placeholder="Your notes… remember to export!" rows="2"></textarea>';
-      html += '<div class="done" data-i="' + i + '" role="button">Mark as called</div>';
       html += '<div class="navrow">';
-      html += (i > 0 ? '<button class="nav prev" data-go="' + (i - 1) + '">&#8593;</button>' : '<span class="nav prev off">&#8593;</span>');
-      html += '<button class="nav skip" data-i="' + i + '">&#9193;<small>NEXT UNCALLED</small></button>';
-      html += '<button class="nav next" data-go="' + (i < n - 1 ? i + 1 : 'sum') + '">&#8595;</button>';
+      html += '<button class="done" data-i="' + i + '">Mark called</button>';
+      html += '<button class="nav skip" data-i="' + i + '">NEXT UNCALLED &#9193;</button>';
       html += '</div></div></section>';
     });
     html += '<section class="lead" id="sum"><div class="card"><div class="top"><span class="brand">' + esc(DATA.listName) + '</span><span class="count">&#10003;</span></div><div class="pbar"><div style="width:100%"></div></div>';
     html += '<div class="sumwrap"><div class="sumbig" id="sumnum"></div><div class="sumtxt" id="sumtxt"></div><button class="reset" id="exportbtn">Copy notes + status for Claude</button><button class="reset" id="resetbtn">Reset progress</button></div>';
-    html += '<div class="navrow"><button class="nav prev" data-go="' + (n - 1) + '">&#8593;</button><button class="nav next" data-go="0">Back to top</button></div>';
+    html += '<div class="navrow"><button class="nav" data-go="0">Back to top</button></div>';
     html += '</div></section>';
     document.getElementById('deck').innerHTML = html;
   }
@@ -243,7 +237,7 @@ function initDeck(DATA){
       var i = +el.dataset.i;
       var on = called[i] != null;
       el.classList.toggle('on', on);
-      el.innerHTML = on ? '&#10003; Called' : 'Mark as called';
+      el.innerHTML = on ? '&#10003; Called' : 'Mark called';
     });
     var cc = calledCount();
     for (var j = 1; j <= n; j++) {
@@ -311,6 +305,14 @@ function initDeck(DATA){
   });
 
   document.getElementById('deck').addEventListener('click', function(e){
+    // tapping the dial button = you're calling them -> auto-mark (don't block the Quo link)
+    var dl = e.target.closest('a.dial');
+    if (dl && dl.dataset.i != null) {
+      called[+dl.dataset.i] = Date.now();
+      saveCalled();
+      paint();
+      return; // default action (opening Quo) still proceeds
+    }
     var em = e.target.closest('.email-copy');
     if (em) {
       var addr = em.dataset.e;
