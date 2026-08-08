@@ -186,7 +186,8 @@ function initDeck(DATA){
         var p = l.numbers[pi];
         html += '<a class="dial" data-i="' + i + '" href="' + esc(quoHref(p.tel)) + '">&#128222; ' + esc(p.display) + '<small>' + esc((p.type || 'PHONE').toUpperCase()) + '</small></a>';
       } else {
-        html += '<div class="dial nodial">No callable number' + ((l.numbers || []).length ? ' — do-not-call only' : ' listed') + '</div>';
+        var gq = encodeURIComponent('"' + l.company + '" ' + (l.location || '') + ' contact phone number');
+        html += '<a class="dial nodial" href="https://www.google.com/search?q=' + gq + '" target="_blank" rel="noopener">&#128269; Google for a number<small>' + ((l.numbers || []).length ? 'NO CALLABLE NUMBER ON FILE' : 'NO NUMBER ON FILE') + '</small></a>';
       }
       var others = (l.numbers || []).filter(function(x, xi){ return xi !== pi && !x.dnc; });
       if (others.length) {
