@@ -106,7 +106,7 @@ function initDeck(DATA){
       });
     });
     return 'CALL DECK EXPORT — instructions for Claude:\n' +
-      'This is Greg’s cold-call deck session export. First read call-deck-config.json in my “Claude work folder” on Google Drive for context. Then, with the DATA below:\n' +
+      'This is Greg’s cold-call deck session export. First read call-deck-README.md in my “Claude work folder” on Google Drive — it explains this project and the full processing protocol — and use call-deck-leads-index.json (same folder) to resolve which lead each entry is. Then, with the DATA below:\n' +
       '1. Append it to “call-deck-log.md” in the work folder (create the file if it doesn’t exist).\n' +
       '2. Prep an Attio payload per called/noted lead (formatted call note, outcome, next step) — but do NOT write to Attio; show me and await my confirmation.\n' +
       '3. For each lead, identify next steps from my notes and recommend the next touch channel (text / email / LinkedIn DM / follow-up call) based on the lead’s segment/sequence stage and what the note says.\n' +
