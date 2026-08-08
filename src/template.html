@@ -171,7 +171,7 @@ function initDeck(DATA){
       var pct = (num / n * 100).toFixed(1);
       var pi = primaryOf(l);
       html += '<section class="lead" id="c' + num + '"><div class="card">';
-      html += '<div class="top"><span class="brand">' + esc(l.brand) + '</span><span class="count">' + num + ' / ' + n + '<span class="donect" id="dc' + num + '"></span></span></div>';
+      html += '<div class="top"><span class="brand">' + esc(DATA.listName) + '</span><span class="count">' + num + ' / ' + n + '<span class="donect" id="dc' + num + '"></span></span></div>';
       html += '<div class="pbar"><div style="width:' + pct + '%"></div></div>';
       html += '<div class="name">' + esc(l.name) + '</div>';
       html += '<div class="ptitle">' + esc(l.title) + '</div>';
