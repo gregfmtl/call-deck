@@ -26,7 +26,7 @@
   .pbar > div { height:100%; background:var(--accent); }
   .name { font-size:22px; font-weight:800; line-height:1.15; margin-top:11px; }
   .ptitle { font-size:13px; color:var(--dim); margin-top:2px; }
-  .co { font-size:15.5px; font-weight:800; color:var(--accent); margin-top:7px; }
+  .co { display:block; font-size:15.5px; font-weight:800; color:var(--accent); margin-top:7px; text-decoration:none; }
   .loc { font-size:13px; color:var(--dim); margin-top:3px; }
   .loc b { color:var(--text); }
   .stats { display:flex; gap:8px; margin-top:9px; }
@@ -49,7 +49,7 @@
   .ind b { color:var(--text); }
   .about { font-size:12px; line-height:1.4; margin-top:4px; }
   .note { font-size:11.5px; color:#e8b64a; margin-top:7px; line-height:1.4; overflow-y:auto; flex:0 1 auto; min-height:0; background:rgba(232,182,74,.07); border-radius:9px; padding:8px 10px; }
-  .mynote { display:block; width:100%; background:rgba(255,255,255,.05); border:1px solid var(--line); border-radius:9px; color:var(--text); font-size:12px; line-height:1.4; font-family:inherit; padding:7px 9px; margin-top:7px; height:38px; resize:none; }
+  .mynote { display:block; width:100%; background:rgba(255,255,255,.05); border:1px solid var(--line); border-radius:9px; color:var(--text); font-size:16px; line-height:1.35; font-family:inherit; padding:7px 9px; margin-top:7px; height:42px; resize:none; }
   .mynote:focus { outline:none; border-color:var(--accent); }
   .mynote::placeholder { color:var(--dim); opacity:.7; }
   .done { display:block; text-align:center; margin-top:auto; padding:8px; border:1px solid var(--line); border-radius:10px; font-size:12px; font-weight:700; color:var(--dim); cursor:pointer; user-select:none; -webkit-user-select:none; }
@@ -160,13 +160,16 @@ function initDeck(DATA){
       html += '<div class="pbar"><div style="width:' + pct + '%"></div></div>';
       html += '<div class="name">' + esc(l.name) + '</div>';
       html += '<div class="ptitle">' + esc(l.title) + '</div>';
-      html += '<div class="co">' + esc(l.company) + '</div>';
+      var site = ((l.links || []).filter(function(k){ return k.label === 'Website'; })[0] || {}).href;
+      html += site
+        ? '<a class="co" href="' + esc(site) + '" target="_blank" rel="noopener">' + esc(l.company) + '</a>'
+        : '<div class="co">' + esc(l.company) + '</div>';
       html += '<div class="loc">' + esc(l.location) + (l.tz ? ' — <b>' + esc(l.tz) + '</b>' : '') + '</div>';
       html += '<div class="stats"><div class="stat"><div class="k">Revenue</div><div class="v">' + esc(l.revenue || '—') + '</div></div><div class="stat"><div class="k">Employees</div><div class="v">' + esc(l.employees || '—') + '</div></div></div>';
       html += '<div class="sib" id="sib' + num + '"></div>';
       if (pi >= 0) {
         var p = l.numbers[pi];
-        html += '<a class="dial" href="' + esc(quoHref(p.tel)) + '">&#128222; ' + esc(p.display) + '<small>' + esc((p.type || 'PHONE').toUpperCase()) + ' — CALL VIA QUO</small></a>';
+        html += '<a class="dial" href="' + esc(quoHref(p.tel)) + '">&#128222; ' + esc(p.display) + '<small>' + esc((p.type || 'PHONE').toUpperCase()) + '</small></a>';
       } else {
         html += '<div class="dial nodial">No callable number' + ((l.numbers || []).length ? ' — do-not-call only' : ' listed') + '</div>';
       }
@@ -184,17 +187,17 @@ function initDeck(DATA){
       if (l.industry) html += '<div class="ind"><b>Industry:</b> ' + esc(l.industry) + '</div>';
       if (l.email) html += '<div class="ind"><b>Email:</b> <span class="email-copy" data-e="' + esc(l.email) + '">' + esc(l.email) + '</span></div>';
       if (l.about) html += '<div class="about">' + esc(l.about) + '</div>';
-      html += '<textarea class="mynote" data-i="' + i + '" placeholder="Your notes… (saved on this phone)" rows="2"></textarea>';
+      html += '<textarea class="mynote" data-i="' + i + '" placeholder="Your notes… remember to export!" rows="2"></textarea>';
       html += '<div class="done" data-i="' + i + '" role="button">Mark as called</div>';
       html += '<div class="navrow">';
-      html += (i > 0 ? '<a class="nav prev" href="#c' + i + '">&#8593;</a>' : '<span class="nav prev off">&#8593;</span>');
+      html += (i > 0 ? '<button class="nav prev" data-go="' + (i - 1) + '">&#8593;</button>' : '<span class="nav prev off">&#8593;</span>');
       html += '<button class="nav skip" data-i="' + i + '">&#9193;<small>NEXT UNCALLED</small></button>';
-      html += (i < n - 1 ? '<a class="nav next" href="#c' + (num + 1) + '">&#8595;</a>' : '<a class="nav next" href="#sum">&#8595;</a>');
+      html += '<button class="nav next" data-go="' + (i < n - 1 ? i + 1 : 'sum') + '">&#8595;</button>';
       html += '</div></div></section>';
     });
     html += '<section class="lead" id="sum"><div class="card"><div class="top"><span class="brand">' + esc(DATA.listName) + '</span><span class="count">&#10003;</span></div><div class="pbar"><div style="width:100%"></div></div>';
     html += '<div class="sumwrap"><div class="sumbig" id="sumnum"></div><div class="sumtxt" id="sumtxt"></div><button class="reset" id="exportbtn">Copy notes + status for Claude</button><button class="reset" id="resetbtn">Reset progress</button></div>';
-    html += '<div class="navrow"><a class="nav prev" href="#c' + n + '">&#8593;</a><a class="nav next" href="#c1">Back to top</a></div>';
+    html += '<div class="navrow"><button class="nav prev" data-go="' + (n - 1) + '">&#8593;</button><button class="nav next" data-go="0">Back to top</button></div>';
     html += '</div></section>';
     document.getElementById('deck').innerHTML = html;
   }
@@ -275,9 +278,18 @@ function initDeck(DATA){
     return null;
   }
 
-  function goTo(i){
-    var el = document.getElementById('c' + (i + 1));
-    if (el) el.scrollIntoView();
+  function goTo(target){
+    // target: lead index (number) or 'sum'
+    var el = target === 'sum' ? document.getElementById('sum') : document.getElementById('c' + (+target + 1));
+    if (!el) return;
+    // temporarily lift scroll-snap: iOS Safari can bounce programmatic/anchor
+    // jumps back to the current snap point inside a mandatory-snap container
+    var h = document.documentElement;
+    h.style.scrollSnapType = 'none';
+    window.scrollTo(0, el.offsetTop);
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){ h.style.scrollSnapType = ''; });
+    });
   }
 
   render();
@@ -321,6 +333,12 @@ function initDeck(DATA){
     if (sk) {
       var j = nextUncalled(+sk.dataset.i);
       if (j !== null) goTo(j);
+      return;
+    }
+    var nv = e.target.closest('.nav[data-go]');
+    if (nv) {
+      var g = nv.dataset.go;
+      goTo(g === 'sum' ? 'sum' : +g);
       return;
     }
     if (e.target.closest('#exportbtn')) {
